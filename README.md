@@ -1,5 +1,5 @@
 # [WHS3] Secure Coding - Tiny Second-hand Shopping Platform
-<img src="/img/img01.png"></img>
+<img src="/image/img01.png"></img>
 ## Description
 
 ## Installation
