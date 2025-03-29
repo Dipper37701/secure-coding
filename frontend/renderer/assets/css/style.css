@@ -1,0 +1,156 @@
+/* frontend/renderer/assets/css/style.css */
+
+/* 전체 페이지 스타일 */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    margin-top: auto;
+}
+
+/* 카드 스타일 */
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* 상품 카드 스타일 */
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+/* 채팅 메시지 스타일 */
+.message {
+    margin-bottom: 15px;
+    max-width: 75%;
+}
+
+.message-sent {
+    margin-left: auto;
+    background-color: #dcf8c6;
+    border-radius: 10px 0 10px 10px;
+    padding: 8px 12px;
+}
+
+.message-received {
+    background-color: #fff;
+    border-radius: 0 10px 10px 10px;
+    padding: 8px 12px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+.message-info {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* 채팅 사이드바 스타일 */
+.chat-room {
+    cursor: pointer;
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+    transition: background-color 0.2s ease;
+}
+
+.chat-room:hover {
+    background-color: #f8f9fa;
+}
+
+.chat-room.active {
+    background-color: #e9ecef;
+}
+
+/* 버튼 스타일 사용자 정의 */
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+}
+
+.btn-success {
+    background-color: #1cc88a;
+    border-color: #1cc88a;
+}
+
+.btn-success:hover {
+    background-color: #17a673;
+    border-color: #169b6b;
+}
+
+.btn-danger {
+    background-color: #e74a3b;
+    border-color: #e74a3b;
+}
+
+.btn-danger:hover {
+    background-color: #e02d1b;
+    border-color: #d52a1a;
+}
+
+/* 헤더 및 타이틀 스타일 */
+.navbar-dark .navbar-brand {
+    font-weight: bold;
+    color: #fff;
+}
+
+.card-header {
+    font-weight: bold;
+}
+
+/* 페이지네이션 스타일 */
+.pagination .page-item.active .page-link {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.pagination .page-link {
+    color: #4e73df;
+}
+
+/* 폼 스타일 */
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+}
+
+/* 알림 메시지 스타일 */
+.alert {
+    margin-bottom: 1.5rem;
+}
+
+/* 이미지 미리보기 스타일 */
+.img-thumbnail {
+    border: 1px solid #ddd;
+}
+
+/* 로딩 스피너 */
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* 모바일 대응 스타일 */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+}

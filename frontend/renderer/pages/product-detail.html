@@ -1,0 +1,406 @@
+<!-- frontend/renderer/pages/product-detail.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 상세 - 중고마켓</title>
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">중고마켓</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">홈</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html">상품 목록</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="chat.html">채팅</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item" id="nav-login">
+                        <a class="nav-link" href="login.html">로그인</a>
+                    </li>
+                    <li class="nav-item" id="nav-register">
+                        <a class="nav-link" href="register.html">회원가입</a>
+                    </li>
+                    <li class="nav-item dropdown d-none" id="nav-user">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <span id="username">사용자</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="profile.html">내 프로필</a></li>
+                            <li><a class="dropdown-item" href="product-create.html">상품 등록</a></li>
+                            <li><a class="dropdown-item" href="#" id="btn-my-products">내 상품 관리</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="btn-logout">로그아웃</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="alert alert-danger d-none" id="product-error"></div>
+        
+        <div id="product-loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">로딩 중...</span>
+            </div>
+            <p class="mt-3">상품 정보를 불러오는 중입니다...</p>
+        </div>
+        
+        <div id="product-container" class="d-none">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div id="product-image" class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                            <span class="text-muted">이미지 없음</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h2 id="product-name" class="mb-3">상품명</h2>
+                    <h3 id="product-price" class="text-primary mb-4">가격</h3>
+                    
+                    <div class="mb-4">
+                        <h5>판매자 정보</h5>
+                        <p id="product-seller" class="mb-2">판매자: <a href="#" id="seller-link">판매자명</a></p>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mb-4">
+                        <button class="btn btn-lg btn-primary" id="btn-chat">판매자와 대화하기</button>
+                        <button class="btn btn-outline-danger d-none" id="btn-report">신고하기</button>
+                    </div>
+                    
+                    <div class="d-flex gap-2 d-none" id="owner-actions">
+                        <button class="btn btn-warning" id="btn-edit">수정하기</button>
+                        <button class="btn btn-danger" id="btn-delete">삭제하기</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>상품 설명</h4>
+                        </div>
+                        <div class="card-body">
+                            <p id="product-description" class="mb-0">상품 설명</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Report Modal -->
+        <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">상품 신고하기</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="report-form">
+                            <div class="mb-3">
+                                <label for="report-reason" class="form-label">신고 사유</label>
+                                <textarea class="form-control" id="report-reason" rows="5" required></textarea>
+                                <div class="form-text">신고 사유를 자세히 작성해주세요.</div>
+                            </div>
+                        </form>
+                        <div class="alert alert-danger d-none" id="report-error"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn btn-danger" id="btn-submit-report">신고하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delete Confirmation Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">상품 삭제 확인</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>정말로 이 상품을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn btn-danger" id="btn-confirm-delete">삭제하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>중고마켓</h5>
+                    <p>안전하고 편리한 중고 거래 플랫폼</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2023 중고마켓. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../node_modules/socket.io-client/dist/socket.io.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/socket-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // DOM elements
+        const productError = document.getElementById('product-error');
+        const productLoading = document.getElementById('product-loading');
+        const productContainer = document.getElementById('product-container');
+        const productImage = document.getElementById('product-image');
+        const productName = document.getElementById('product-name');
+        const productPrice = document.getElementById('product-price');
+        const productSeller = document.getElementById('product-seller');
+        const sellerLink = document.getElementById('seller-link');
+        const productDescription = document.getElementById('product-description');
+        const btnChat = document.getElementById('btn-chat');
+        const btnReport = document.getElementById('btn-report');
+        const ownerActions = document.getElementById('owner-actions');
+        const btnEdit = document.getElementById('btn-edit');
+        const btnDelete = document.getElementById('btn-delete');
+        const navLogin = document.getElementById('nav-login');
+        const navRegister = document.getElementById('nav-register');
+        const navUser = document.getElementById('nav-user');
+        const username = document.getElementById('username');
+        const btnLogout = document.getElementById('btn-logout');
+        const btnMyProducts = document.getElementById('btn-my-products');
+        
+        // Report modal elements
+        const reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+        const reportForm = document.getElementById('report-form');
+        const reportReason = document.getElementById('report-reason');
+        const reportError = document.getElementById('report-error');
+        const btnSubmitReport = document.getElementById('btn-submit-report');
+        
+        // Delete modal elements
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+        
+        // Product ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        
+        // Current product data
+        let currentProduct = null;
+        
+        // Load product details
+        async function loadProductDetails() {
+            if (!productId) {
+                showError('상품 ID가 없습니다.');
+                return;
+            }
+            
+            try {
+                const response = await window.apiClient.product.getProduct(productId);
+                currentProduct = response.product;
+                
+                // Update UI with product data
+                document.title = `${currentProduct.name} - 중고마켓`;
+                productName.textContent = currentProduct.name;
+                productPrice.textContent = `${currentProduct.price.toLocaleString()}원`;
+                productSeller.innerHTML = `판매자: <a href="#" id="seller-link">${currentProduct.seller_name}</a>`;
+                productDescription.textContent = currentProduct.description || '상품 설명이 없습니다.';
+                
+                // Update image if available
+                if (currentProduct.image_path) {
+                    productImage.innerHTML = `<img src="../..${currentProduct.image_path}" class="img-fluid" style="max-height: 400px; object-fit: contain;" alt="${currentProduct.name}">`;
+                }
+                
+                // Set seller link
+                sellerLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.location.href = `profile.html?id=${currentProduct.seller_id}`;
+                });
+                
+                // Check if current user is the seller
+                const currentUser = await window.auth.getCurrentUser();
+                if (currentUser && currentUser.id === currentProduct.seller_id) {
+                    // Show owner actions, hide chat and report buttons
+                    ownerActions.classList.remove('d-none');
+                    btnChat.classList.add('d-none');
+                    btnReport.classList.add('d-none');
+                } else if (currentUser) {
+                    // Show chat and report buttons
+                    btnChat.classList.remove('d-none');
+                    btnReport.classList.remove('d-none');
+                } else {
+                    // Only show chat button for non-logged in users
+                    btnChat.classList.remove('d-none');
+                }
+                
+                // Show product container, hide loading
+                productLoading.classList.add('d-none');
+                productContainer.classList.remove('d-none');
+            } catch (error) {
+                showError(error.message || '상품 정보를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // Show error message
+        function showError(message) {
+            productError.textContent = message;
+            productError.classList.remove('d-none');
+            productLoading.classList.add('d-none');
+        }
+        
+        // Chat with seller
+        btnChat.addEventListener('click', async () => {
+            // Check if user is logged in
+            const currentUser = await window.auth.getCurrentUser();
+            if (!currentUser) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                // Create private chat with seller
+                const response = await window.apiClient.chat.createPrivateChat(currentProduct.seller_id);
+                
+                // Redirect to chat page
+                window.location.href = `chat.html?room=${response.room.id}`;
+            } catch (error) {
+                showError(error.message || '채팅방을 생성하는 중 오류가 발생했습니다.');
+            }
+        });
+        
+        // Report product
+        btnReport.addEventListener('click', () => {
+            reportForm.reset();
+            reportError.classList.add('d-none');
+            reportModal.show();
+        });
+        
+        // Handle report submission
+        btnSubmitReport.addEventListener('click', async () => {
+            const reason = reportReason.value.trim();
+            
+            if (!reason) {
+                reportError.textContent = '신고 사유를 입력해주세요.';
+                reportError.classList.remove('d-none');
+                return;
+            }
+            
+            try {
+                // Disable button and show loading state
+                btnSubmitReport.disabled = true;
+                btnSubmitReport.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 신고 중...';
+                
+                // Submit report
+                await window.apiClient.report.reportProduct(productId, reason);
+                
+                // Hide modal and show success message
+                reportModal.hide();
+                alert('신고가 접수되었습니다. 검토 후 조치를 취하겠습니다.');
+            } catch (error) {
+                reportError.textContent = error.message || '신고 처리 중 오류가 발생했습니다.';
+                reportError.classList.remove('d-none');
+            } finally {
+                // Restore button state
+                btnSubmitReport.disabled = false;
+                btnSubmitReport.textContent = '신고하기';
+            }
+        });
+        
+        // Edit product
+        btnEdit.addEventListener('click', () => {
+            window.location.href = `product-edit.html?id=${productId}`;
+        });
+        
+        // Delete product
+        btnDelete.addEventListener('click', () => {
+            deleteModal.show();
+        });
+        
+        // Confirm delete
+        btnConfirmDelete.addEventListener('click', async () => {
+            try {
+                // Disable button and show loading state
+                btnConfirmDelete.disabled = true;
+                btnConfirmDelete.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 삭제 중...';
+                
+                // Delete product
+                await window.apiClient.product.deleteProduct(productId);
+                
+                // Hide modal and redirect to my products
+                deleteModal.hide();
+                alert('상품이 삭제되었습니다.');
+                window.location.href = 'product-user.html';
+            } catch (error) {
+                alert(error.message || '상품 삭제 중 오류가 발생했습니다.');
+                deleteModal.hide();
+            } finally {
+                // Restore button state
+                btnConfirmDelete.disabled = false;
+                btnConfirmDelete.textContent = '삭제하기';
+            }
+        });
+        
+        // Handle logout
+        btnLogout.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await window.auth.logout();
+            window.location.reload();
+        });
+        
+        // Navigate to my products
+        btnMyProducts.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'product-user.html';
+        });
+        
+        // Update UI based on auth status
+        async function updateUI() {
+            const user = await window.auth.getCurrentUser();
+            
+            if (user) {
+                navLogin.classList.add('d-none');
+                navRegister.classList.add('d-none');
+                navUser.classList.remove('d-none');
+                username.textContent = user.username;
+            } else {
+                navLogin.classList.remove('d-none');
+                navRegister.classList.remove('d-none');
+                navUser.classList.add('d-none');
+            }
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Update UI based on auth status
+            await updateUI();
+            
+            // Load product details
+            await loadProductDetails();
+        });
+    </script>
+</body>
+</html>

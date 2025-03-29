@@ -1,0 +1,159 @@
+<!-- frontend/renderer/pages/register.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - 중고마켓</title>
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">중고마켓</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">홈</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html">상품 목록</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="chat.html">채팅</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.html">로그인</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="register.html">회원가입</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h4 class="mb-0">회원가입</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger d-none" id="register-error"></div>
+                        
+                        <form id="register-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">사용자 이름</label>
+                                <input type="text" class="form-control" id="username" required>
+                                <div class="form-text">다른 사용자와 중복되지 않는 고유한 이름을 입력하세요.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">비밀번호</label>
+                                <input type="password" class="form-control" id="password" required>
+                                <div class="form-text">안전한 비밀번호를 사용하세요.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirm-password" class="form-label">비밀번호 확인</label>
+                                <input type="password" class="form-control" id="confirm-password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">소개글 (선택사항)</label>
+                                <textarea class="form-control" id="description" rows="3"></textarea>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary" id="btn-register">회원가입</button>
+                                <a href="login.html" class="btn btn-outline-secondary">로그인으로 돌아가기</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>중고마켓</h5>
+                    <p>안전하고 편리한 중고 거래 플랫폼</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2023 중고마켓. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../node_modules/socket.io-client/dist/socket.io.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/socket-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // DOM elements
+        const registerForm = document.getElementById('register-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const descriptionInput = document.getElementById('description');
+        const registerError = document.getElementById('register-error');
+        const registerButton = document.getElementById('btn-register');
+
+        // Handle register form submission
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get input values
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const description = descriptionInput.value.trim();
+            
+            // Validate inputs
+            if (password !== confirmPassword) {
+                registerError.textContent = '비밀번호가 일치하지 않습니다.';
+                registerError.classList.remove('d-none');
+                return;
+            }
+            
+            // Disable button and show loading state
+            registerButton.disabled = true;
+            registerButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 가입 중...';
+            
+            try {
+                // Clear previous errors
+                registerError.classList.add('d-none');
+                
+                // Attempt registration
+                await window.auth.register(username, password, description);
+                
+                // Redirect to home page on success
+                window.location.href = '../index.html';
+            } catch (error) {
+                // Show error message
+                registerError.textContent = error.message || '회원가입에 실패했습니다. 다른 사용자 이름을 시도해주세요.';
+                registerError.classList.remove('d-none');
+            } finally {
+                // Restore button state
+                registerButton.disabled = false;
+                registerButton.textContent = '회원가입';
+            }
+        });
+
+        // Check if user is already authenticated
+        document.addEventListener('DOMContentLoaded', async () => {
+            await window.auth.requireNoAuth();
+        });
+    </script>
+</body>
+</html>

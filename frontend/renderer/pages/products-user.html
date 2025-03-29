@@ -1,0 +1,308 @@
+<!-- frontend/renderer/pages/product-user.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 상품 관리 - 중고마켓</title>
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">중고마켓</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">홈</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html">상품 목록</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="chat.html">채팅</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <span id="username">사용자</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="profile.html">내 프로필</a></li>
+                            <li><a class="dropdown-item" href="product-create.html">상품 등록</a></li>
+                            <li><a class="dropdown-item active" href="product-user.html">내 상품 관리</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="btn-logout">로그아웃</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="alert alert-danger d-none" id="products-error"></div>
+        <div class="alert alert-success d-none" id="products-success"></div>
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>내 상품 관리</h1>
+            <a href="product-create.html" class="btn btn-primary">새 상품 등록</a>
+        </div>
+        
+        <div id="products-loading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">로딩 중...</span>
+            </div>
+            <p class="mt-3">상품을 불러오는 중입니다...</p>
+        </div>
+        
+        <div id="products-table-container" class="d-none">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 80px;">이미지</th>
+                            <th>상품명</th>
+                            <th>가격</th>
+                            <th>등록일</th>
+                            <th>상태</th>
+                            <th style="width: 200px;">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table-body">
+                        <!-- Products will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="no-products" class="text-center py-5 d-none">
+            <h3 class="text-muted">등록한 상품이 없습니다</h3>
+            <p>새 상품을 등록하여 판매를 시작해보세요</p>
+            <a href="product-create.html" class="btn btn-primary mt-3">상품 등록하기</a>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">상품 삭제 확인</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>정말로 이 상품을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</p>
+                    <p class="fw-bold" id="delete-product-name">상품명</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-danger" id="btn-confirm-delete">삭제하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>중고마켓</h5>
+                    <p>안전하고 편리한 중고 거래 플랫폼</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2023 중고마켓. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../node_modules/socket.io-client/dist/socket.io.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/socket-client.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // DOM elements
+        const productsError = document.getElementById('products-error');
+        const productsSuccess = document.getElementById('products-success');
+        const productsLoading = document.getElementById('products-loading');
+        const productsTableContainer = document.getElementById('products-table-container');
+        const productsTableBody = document.getElementById('products-table-body');
+        const noProducts = document.getElementById('no-products');
+        const btnLogout = document.getElementById('btn-logout');
+        const usernameElement = document.getElementById('username');
+        
+        // Delete modal elements
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const deleteProductName = document.getElementById('delete-product-name');
+        const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+        
+        // Current product to delete
+        let currentDeleteProductId = null;
+        
+        // Show error message
+        function showError(message) {
+            productsError.textContent = message;
+            productsError.classList.remove('d-none');
+            productsSuccess.classList.add('d-none');
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            productsSuccess.textContent = message;
+            productsSuccess.classList.remove('d-none');
+            productsError.classList.add('d-none');
+        }
+        
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        // Load user's products
+        async function loadProducts() {
+            try {
+                // Show loading
+                productsLoading.classList.remove('d-none');
+                productsTableContainer.classList.add('d-none');
+                noProducts.classList.add('d-none');
+                productsTableBody.innerHTML = '';
+                
+                // Get user's products
+                const response = await window.apiClient.product.getUserProducts();
+                const products = response.products;
+                
+                // Hide loading
+                productsLoading.classList.add('d-none');
+                
+                // Show appropriate UI based on products
+                if (products.length === 0) {
+                    noProducts.classList.remove('d-none');
+                } else {
+                    productsTableContainer.classList.remove('d-none');
+                    
+                    // Render products in the table
+                    products.forEach(product => {
+                        const row = document.createElement('tr');
+                        
+                        row.innerHTML = `
+                            <td>
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    ${product.image_path 
+                                        ? `<img src="../..${product.image_path}" class="img-fluid" style="max-width: 60px; max-height: 60px;" alt="${product.name}">`
+                                        : `<span class="text-muted small">이미지 없음</span>`
+                                    }
+                                </div>
+                            </td>
+                            <td>${product.name}</td>
+                            <td>${product.price.toLocaleString()}원</td>
+                            <td>${formatDate(product.created_at)}</td>
+                            <td>
+                                <span class="badge ${product.is_active ? 'bg-success' : 'bg-danger'}">
+                                    ${product.is_active ? '판매중' : '판매중지'}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="product-detail.html?id=${product.id}" class="btn btn-sm btn-outline-primary">보기</a>
+                                    <a href="product-edit.html?id=${product.id}" class="btn btn-sm btn-outline-warning">수정</a>
+                                    <button class="btn btn-sm btn-outline-danger btn-delete" data-product-id="${product.id}" data-product-name="${product.name}">삭제</button>
+                                </div>
+                            </td>
+                        `;
+                        
+                        productsTableBody.appendChild(row);
+                    });
+                    
+                    // Add event listeners to delete buttons
+                    const deleteButtons = document.querySelectorAll('.btn-delete');
+                    deleteButtons.forEach(button => {
+                        button.addEventListener('click', () => showDeleteConfirmation(button.dataset.productId, button.dataset.productName));
+                    });
+                }
+            } catch (error) {
+                console.error('상품 로드 오류:', error);
+                showError(error.message || '상품을 불러오는 중 오류가 발생했습니다.');
+                productsLoading.classList.add('d-none');
+            }
+        }
+        
+        // Show delete confirmation modal
+        function showDeleteConfirmation(productId, productName) {
+            currentDeleteProductId = productId;
+            deleteProductName.textContent = productName;
+            deleteModal.show();
+        }
+        
+        // Delete product
+        async function deleteProduct() {
+            if (!currentDeleteProductId) return;
+            
+            try {
+                // Disable button and show loading state
+                btnConfirmDelete.disabled = true;
+                btnConfirmDelete.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 삭제 중...';
+                
+                // Delete product
+                await window.apiClient.product.deleteProduct(currentDeleteProductId);
+                
+                // Hide modal
+                deleteModal.hide();
+                
+                // Show success message
+                showSuccess('상품이 성공적으로 삭제되었습니다.');
+                
+                // Reload products
+                await loadProducts();
+            } catch (error) {
+                console.error('상품 삭제 오류:', error);
+                showError(error.message || '상품을 삭제하는 중 오류가 발생했습니다.');
+                deleteModal.hide();
+            } finally {
+                // Restore button state
+                btnConfirmDelete.disabled = false;
+                btnConfirmDelete.textContent = '삭제하기';
+                currentDeleteProductId = null;
+            }
+        }
+        
+        // Handle delete confirmation
+        btnConfirmDelete.addEventListener('click', deleteProduct);
+        
+        // Handle logout
+        btnLogout.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await window.auth.logout();
+            window.location.href = '../index.html';
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Require authentication
+            const isAuthenticated = await window.auth.requireAuth();
+            if (!isAuthenticated) return;
+            
+            // Get current user
+            const user = await window.auth.getCurrentUser();
+            if (user) {
+                usernameElement.textContent = user.username;
+            }
+            
+            // Load products
+            await loadProducts();
+        });
+    </script>
+</body>
+</html>

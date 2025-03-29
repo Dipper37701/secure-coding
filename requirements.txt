@@ -1,0 +1,28 @@
+# requirements.txt
+
+# 웹 프레임워크 및 확장
+Flask==2.3.3
+Flask-Cors==4.0.0
+Flask-JWT-Extended==4.5.2
+Flask-SocketIO==5.3.5
+Flask-SQLAlchemy==3.1.1
+PyJWT==2.9.0
+
+# 데이터베이스
+SQLAlchemy==2.0.21
+SQLAlchemy-Utils==0.41.1
+
+# 비밀번호 해싱
+bcrypt==4.0.1
+
+# 소켓 통신
+python-socketio==5.9.0
+python-engineio==4.7.1
+eventlet==0.33.3
+
+# 파일 업로드 및 처리
+Werkzeug==2.3.7
+Pillow==10.0.1
+
+# 개발 및 디버깅
+python-dotenv==1.0.0
